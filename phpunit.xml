@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<phpunit
+    bootstrap="tests/bootstrap-phpunit.php"
+    colors="true"
+    executionOrder="random"
+    failOnWarning="false"
+>
+    <testsuites>
+        <testsuite name="unit">
+            <directory suffix="Test.php">tests/unit</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <ini name="display_errors" value="1"/>
+        <ini name="error_reporting" value="E_ALL"/>
+    </php>
+</phpunit>

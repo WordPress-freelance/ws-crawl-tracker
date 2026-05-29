@@ -1,0 +1,25 @@
+# Dépendances de test clonées (provisionnées via CI / script local)
+/vendor/10up/
+/vendor/mockery/
+/vendor/antecedent/
+/vendor/hamcrest/
+/vendor/bin/
+/vendor/composer/
+
+# Composer (jamais utilisé — proxy bloqué)
+composer.lock
+
+# Couverture / rapports
+clover.xml
+.phpunit.result.cache
+coverage/
+
+# OS / éditeurs
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+
+# Build
+*.zip
