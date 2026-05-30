@@ -136,4 +136,34 @@ class RepositoryTest extends WebStrategyTestCase {
         $wpdb->var = 7;
         $this->assertSame( 7, $repo->count_all() );
     }
+
+    public function test_get_recent_hits_grouped_buckets_by_day() {
+        [ $repo, $wpdb ] = $this->repo();
+        $wpdb->rows = [
+            [ 'url' => '/a', 'hit_time' => '2026-05-29 09:00:00', 'bot_name' => 'Googlebot', 'status_code' => 200, 'is_verified' => 1 ],
+            [ 'url' => '/b', 'hit_time' => '2026-05-29 08:00:00', 'bot_name' => 'Googlebot', 'status_code' => 200, 'is_verified' => 1 ],
+            [ 'url' => '/c', 'hit_time' => '2026-05-28 12:00:00', 'bot_name' => 'Bingbot',   'status_code' => 404, 'is_verified' => 0 ],
+        ];
+        $grouped = $repo->get_recent_hits_grouped( 200 );
+
+        $this->assertArrayHasKey( '2026-05-29', $grouped );
+        $this->assertArrayHasKey( '2026-05-28', $grouped );
+        $this->assertCount( 2, $grouped['2026-05-29'] );
+        $this->assertCount( 1, $grouped['2026-05-28'] );
+    }
+
+    public function test_get_all_for_export_selects_full_columns() {
+        [ $repo, $wpdb ] = $this->repo();
+        $repo->get_all_for_export( 30 );
+        $sql = $wpdb->last();
+        $this->assertStringContainsString( 'referer', $sql );
+        $this->assertStringContainsString( 'content_type', $sql );
+        $this->assertStringNotContainsString( 'LIMIT', $sql );
+    }
+
+    public function test_get_all_for_export_filters_by_bot() {
+        [ $repo, $wpdb ] = $this->repo();
+        $repo->get_all_for_export( 30, 'googlebot' );
+        $this->assertStringContainsString( 'bot_key', $wpdb->last() );
+    }
 }

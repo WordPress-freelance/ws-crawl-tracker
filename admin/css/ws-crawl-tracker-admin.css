@@ -207,6 +207,26 @@
 .ws-switch input:checked + .ws-switch__track .ws-switch__thumb { transform:translateX(19px); background:#fff; }
 .ws-switch__label { font-size:13px; color:var(--ws-t2); font-weight:500; }
 
+/* ── Export button ─────────────────────────────────────────────────────── */
+.wsct-export-btn { display:inline-flex; align-items:center; text-decoration:none; }
+.wsct-export-btn:hover { color:var(--ws-accent-l); border-color:var(--ws-accent); }
+
+/* ── Accordéons (derniers passages par jour) ───────────────────────────── */
+.wsct-accordions { display:flex; flex-direction:column; gap:8px; }
+.wsct-acc { border:1px solid var(--ws-border); border-radius:9px; background:var(--ws-bg-deep); overflow:hidden; }
+.wsct-acc-head { width:100%; display:flex; align-items:center; gap:11px; padding:12px 15px; background:transparent; border:none; cursor:pointer; text-align:left; color:var(--ws-t2); font-size:13px; font-family:'Inter',sans-serif; transition:background .15s; }
+.wsct-acc-head:hover { background:rgba(255,255,255,.03); }
+.wsct-acc-chevron { width:15px; height:15px; flex-shrink:0; color:var(--ws-accent-l); transition:transform .2s ease; }
+.wsct-acc--open .wsct-acc-chevron { transform:rotate(90deg); }
+.wsct-acc-day { font-weight:600; color:var(--ws-t1); font-feature-settings:"tnum"; }
+.wsct-acc-count { margin-left:auto; font-size:11.5px; color:var(--ws-accent-l); background:rgba(124,92,191,.14); padding:3px 11px; border-radius:99px; }
+.wsct-acc-body { display:none; padding:0 15px 8px; }
+.wsct-acc--open .wsct-acc-body { display:block; }
+.wsct-acc-row { display:grid; grid-template-columns:78px auto 1fr 48px 30px; align-items:center; gap:12px; padding:8px 0; border-top:1px solid var(--ws-border); font-size:12px; }
+.wsct-acc-time { color:var(--ws-t4); font-family:ui-monospace,monospace; font-size:11px; }
+.wsct-acc-url { color:var(--ws-accent-l); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.wsct-acc-verified { text-align:center; }
+
 /* ── Responsive ────────────────────────────────────────────────────────── */
 @media (max-width:1100px) {
   .wsct-kpis { grid-template-columns:repeat(2, 1fr); }

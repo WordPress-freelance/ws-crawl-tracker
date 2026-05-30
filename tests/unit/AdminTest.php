@@ -182,4 +182,41 @@ class AdminTest extends WebStrategyTestCase {
         $admin->run_purge();
         $this->assertStringContainsString( 'DELETE FROM', $wpdb->last_query );
     }
+
+    public function test_write_csv_outputs_header_and_rows() {
+        $admin = $this->admin();
+
+        $rows = [ [
+            'hit_time' => '2026-05-29 09:00:00', 'bot_name' => 'Googlebot', 'bot_key' => 'googlebot',
+            'url' => 'https://x.fr/page', 'method' => 'GET', 'status_code' => 200,
+            'content_type' => 'singular', 'is_verified' => 1, 'ip' => '66.249.66.1',
+            'referer' => '', 'session_id' => 'abc', 'post_id' => 12,
+        ] ];
+
+        $stream = fopen( 'php://memory', 'r+' );
+        $admin->write_csv( $stream, $rows );
+        rewind( $stream );
+        $csv = stream_get_contents( $stream );
+        fclose( $stream );
+
+        $this->assertStringContainsString( 'Googlebot', $csv );
+        $this->assertStringContainsString( 'https://x.fr/page', $csv );
+        $this->assertStringContainsString( '200', $csv );
+        $this->assertStringContainsString( 'URL', $csv );
+        // BOM présent en tête.
+        $this->assertSame( "\xEF\xBB\xBF", substr( $csv, 0, 3 ) );
+    }
+
+    public function test_export_csv_denies_without_capability() {
+        $admin = $this->admin();
+        WP_Mock::userFunction( 'check_admin_referer', [ 'return' => true ] );
+        WP_Mock::userFunction( 'current_user_can', [ 'return' => false ] );
+        WP_Mock::userFunction( 'wp_die', [
+            'times'  => 1,
+            'return' => function () { throw new \RuntimeException( '__died__' ); },
+        ] );
+
+        $this->expectException( \RuntimeException::class );
+        $admin->handle_export_csv();
+    }
 }

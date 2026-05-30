@@ -177,7 +177,7 @@ class WS_Crawl_Tracker_Admin {
         $statuses  = $repo->get_status_breakdown( $days, $bot_key );
         $hourly    = $repo->get_hourly_distribution( $days, $bot_key );
         $sessions  = $repo->get_recent_sessions( $days, 30, $bot_key );
-        $recent    = $repo->get_recent_hits( 100, $bot_key );
+        $recent    = $repo->get_recent_hits_grouped( 200, $bot_key );
         $recos     = $analyzer->build( $stats, $by_bot, $statuses, $top_pages );
 
         wp_send_json_success( [
@@ -223,6 +223,85 @@ class WS_Crawl_Tracker_Admin {
         $repo->truncate();
 
         wp_send_json_success( [ 'message' => __( 'Données supprimées.', 'ws-crawl-tracker' ) ] );
+    }
+
+    // -------------------------------------------------------------------------
+    // Export CSV
+    // -------------------------------------------------------------------------
+
+    /**
+     * Stream un export CSV des hits de crawl (filtré période + bot).
+     * Hook : admin_post_wsct_export. Nonce sur l'URL (lecture + téléchargement).
+     */
+    public function handle_export_csv() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_die( esc_html__( 'Accès refusé.', 'ws-crawl-tracker' ) );
+        }
+        check_admin_referer( 'wsct_export' );
+
+        $days    = isset( $_GET['days'] ) ? absint( $_GET['days'] ) : 30;
+        $days    = max( 1, min( 365, $days ) );
+        $bot_key = isset( $_GET['bot'] ) ? sanitize_key( wp_unslash( $_GET['bot'] ) ) : '';
+        $bot_key = '' !== $bot_key ? $bot_key : null;
+
+        $repo = new WS_Crawl_Tracker_Repository();
+        $rows = $repo->get_all_for_export( $days, $bot_key );
+
+        $filename = 'ws-crawl-tracker-' . gmdate( 'Y-m-d-His' ) . '.csv';
+
+        nocache_headers();
+        header( 'Content-Type: text/csv; charset=utf-8' );
+        header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+
+        $out = fopen( 'php://output', 'w' );
+        $this->write_csv( $out, $rows );
+        fclose( $out );
+
+        $this->terminate();
+    }
+
+    /**
+     * Écrit les lignes CSV dans un stream donné. Isolé pour test (sans headers).
+     *
+     * @param resource $out
+     * @param array    $rows
+     */
+    public function write_csv( $out, array $rows ) {
+        // BOM UTF-8 pour Excel.
+        fwrite( $out, "\xEF\xBB\xBF" );
+
+        $headers = [
+            __( 'Date', 'ws-crawl-tracker' ),
+            __( 'Robot', 'ws-crawl-tracker' ),
+            __( 'Clé robot', 'ws-crawl-tracker' ),
+            __( 'URL', 'ws-crawl-tracker' ),
+            __( 'Méthode', 'ws-crawl-tracker' ),
+            __( 'Code HTTP', 'ws-crawl-tracker' ),
+            __( 'Type de contenu', 'ws-crawl-tracker' ),
+            __( 'Vérifié', 'ws-crawl-tracker' ),
+            __( 'IP', 'ws-crawl-tracker' ),
+            __( 'Référent', 'ws-crawl-tracker' ),
+            __( 'Session', 'ws-crawl-tracker' ),
+            __( 'Post ID', 'ws-crawl-tracker' ),
+        ];
+        fputcsv( $out, $headers );
+
+        foreach ( $rows as $r ) {
+            fputcsv( $out, [
+                $r['hit_time'],
+                $r['bot_name'],
+                $r['bot_key'],
+                $r['url'],
+                $r['method'],
+                $r['status_code'],
+                $r['content_type'],
+                ( (int) $r['is_verified'] === 1 ) ? __( 'Oui', 'ws-crawl-tracker' ) : __( 'Non', 'ws-crawl-tracker' ),
+                $r['ip'],
+                $r['referer'],
+                $r['session_id'],
+                $r['post_id'],
+            ] );
+        }
     }
 
     // -------------------------------------------------------------------------

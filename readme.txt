@@ -4,7 +4,7 @@ Tags: seo, googlebot, crawl, bot, log, geo, search engine, ai bots
 Requires at least: 5.6
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,10 +69,17 @@ La table de données et toutes les options sont supprimées proprement.
 
 == Changelog ==
 
+= 1.1.0 =
+* Nouveau : export CSV des hits de crawl (filtré par période et robot), compatible Excel (BOM UTF-8).
+* Nouveau : les derniers passages sont regroupés par jour en accordéons dépliables.
+
 = 1.0.0 =
 * Version initiale : tracking multi-robots, dashboard complet, vérification reverse DNS, recommandations, purge automatique.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+Export CSV et regroupement des passages par jour.
 
 = 1.0.0 =
 Première version.

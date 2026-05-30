@@ -193,6 +193,58 @@ class WS_Crawl_Tracker_Repository {
     }
 
     /**
+     * Derniers hits regroupés par jour (pour l'affichage en accordéons).
+     * Retourne une structure ordonnée : [ '2026-05-29' => [ hits... ], ... ].
+     *
+     * @param int         $limit
+     * @param string|null $bot_key
+     * @return array
+     */
+    public function get_recent_hits_grouped( $limit = 200, $bot_key = null ) {
+        $rows    = $this->get_recent_hits( $limit, $bot_key );
+        $grouped = [];
+
+        foreach ( $rows as $row ) {
+            $day = substr( (string) $row['hit_time'], 0, 10 );
+            if ( ! isset( $grouped[ $day ] ) ) {
+                $grouped[ $day ] = [];
+            }
+            $grouped[ $day ][] = $row;
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * Toutes les colonnes d'une fenêtre temporelle, pour l'export CSV.
+     * Pas de LIMIT : destiné à un téléchargement complet.
+     *
+     * @param int         $days
+     * @param string|null $bot_key
+     * @return array
+     */
+    public function get_all_for_export( $days = 30, $bot_key = null ) {
+        global $wpdb;
+        $table = self::table();
+        $since = $this->since( $days );
+
+        $where  = 'hit_time >= %s';
+        $params = [ $since ];
+        if ( $bot_key ) {
+            $where   .= ' AND bot_key = %s';
+            $params[] = $bot_key;
+        }
+
+        $sql = "SELECT hit_time, bot_name, bot_key, url, method, status_code,
+                       content_type, is_verified, ip, referer, session_id, post_id
+                FROM {$table}
+                WHERE {$where}
+                ORDER BY hit_time DESC, id DESC";
+
+        return $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A ) ?: [];
+    }
+
+    /**
      * Chemin de crawl d'une session : séquence ordonnée des URLs visitées.
      * Sert à reconstruire le graphe de navigation (from → to).
      *

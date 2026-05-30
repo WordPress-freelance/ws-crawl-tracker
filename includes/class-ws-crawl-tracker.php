@@ -50,6 +50,7 @@ class WS_Crawl_Tracker {
         $this->loader->add_filter( 'admin_body_class',      $admin, 'add_admin_body_class' );
         $this->loader->add_action( 'admin_head',            $admin, 'inline_reset_css' );
         $this->loader->add_action( 'admin_post_wsct_save_settings', $admin, 'handle_save_settings' );
+        $this->loader->add_action( 'admin_post_wsct_export',        $admin, 'handle_export_csv' );
         $this->loader->add_action( 'wp_ajax_wsct_get_data',     $admin, 'ajax_get_data' );
         $this->loader->add_action( 'wp_ajax_wsct_get_session',  $admin, 'ajax_get_session' );
         $this->loader->add_action( 'wp_ajax_wsct_purge',        $admin, 'ajax_purge' );

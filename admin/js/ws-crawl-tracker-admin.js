@@ -220,28 +220,64 @@
     }
 
     // ── Flux récent ────────────────────────────────────────────────────────────
-    function renderRecent(rows) {
-        var body = document.getElementById('wsct-recent');
-        if (!body) return;
-        if (!rows || !rows.length) {
-            body.innerHTML = '<tr><td colspan="5" class="wsct-empty">' + escHtml(t('noData')) + '</td></tr>';
+    function timeOnly(dt) {
+        // "2026-05-29 09:08:55" → "09:08:55"
+        var parts = String(dt).split(' ');
+        return parts.length > 1 ? parts[1] : dt;
+    }
+
+    function renderRecent(grouped) {
+        var wrap = document.getElementById('wsct-recent');
+        if (!wrap) return;
+
+        var days = grouped ? Object.keys(grouped) : [];
+        if (!days.length) {
+            wrap.innerHTML = '<p class="wsct-empty">' + escHtml(t('noData')) + '</p>';
             return;
         }
-        body.innerHTML = rows.map(function (r) {
-            var cc = codeClass(r.status_code);
-            var path = '';
-            try { path = new URL(r.url).pathname || r.url; } catch (e) { path = r.url; }
-            var verified = parseInt(r.is_verified, 10) === 1
-                ? '<span class="wsct-verified">✓</span>'
-                : '<span class="wsct-unverified">—</span>';
-            return '<tr>' +
-                '<td>' + escHtml(r.hit_time) + '</td>' +
-                '<td><span class="wsct-bot-tag">' + escHtml(r.bot_name) + '</span></td>' +
-                '<td class="wsct-td-url" title="' + escHtml(r.url) + '">' + escHtml(path) + '</td>' +
-                '<td><span class="wsct-code wsct-code--' + cc + '">' + escHtml(r.status_code) + '</span></td>' +
-                '<td>' + verified + '</td>' +
-                '</tr>';
+
+        // grouped est déjà ordonné jour décroissant côté PHP (hit_time DESC),
+        // mais on re-trie par sécurité.
+        days.sort(function (a, b) { return a < b ? 1 : -1; });
+
+        wrap.innerHTML = days.map(function (day, idx) {
+            var rows = grouped[day] || [];
+            var open = idx === 0; // premier jour ouvert par défaut
+
+            var rowsHtml = rows.map(function (r) {
+                var cc = codeClass(r.status_code);
+                var path = '';
+                try { path = new URL(r.url).pathname || r.url; } catch (e) { path = r.url; }
+                var verified = parseInt(r.is_verified, 10) === 1
+                    ? '<span class="wsct-verified">✓</span>'
+                    : '<span class="wsct-unverified">—</span>';
+                return '<div class="wsct-acc-row">' +
+                    '<span class="wsct-acc-time">' + escHtml(timeOnly(r.hit_time)) + '</span>' +
+                    '<span class="wsct-bot-tag">' + escHtml(r.bot_name) + '</span>' +
+                    '<span class="wsct-acc-url" title="' + escHtml(r.url) + '">' + escHtml(path) + '</span>' +
+                    '<span class="wsct-code wsct-code--' + cc + '">' + escHtml(r.status_code) + '</span>' +
+                    '<span class="wsct-acc-verified">' + verified + '</span>' +
+                    '</div>';
+            }).join('');
+
+            return '<div class="wsct-acc' + (open ? ' wsct-acc--open' : '') + '">' +
+                '<button type="button" class="wsct-acc-head" aria-expanded="' + (open ? 'true' : 'false') + '">' +
+                '<svg class="wsct-acc-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>' +
+                '<span class="wsct-acc-day">' + escHtml(day) + '</span>' +
+                '<span class="wsct-acc-count">' + num(rows.length) + ' ' + escHtml(t('hits').toLowerCase()) + '</span>' +
+                '</button>' +
+                '<div class="wsct-acc-body">' + rowsHtml + '</div>' +
+                '</div>';
         }).join('');
+
+        // Listeners de pliage.
+        wrap.querySelectorAll('.wsct-acc-head').forEach(function (head) {
+            head.addEventListener('click', function () {
+                var acc = head.parentElement;
+                var isOpen = acc.classList.toggle('wsct-acc--open');
+                head.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+        });
     }
 
     // ── Chargement global ──────────────────────────────────────────────────────
@@ -277,6 +313,26 @@
             .catch(function () { if (loading) loading.style.display = 'none'; });
     }
 
+    // Met à jour l'URL du bouton d'export CSV selon les filtres courants,
+    // en conservant le nonce déjà présent dans le href initial.
+    function updateExportLink() {
+        var link = document.getElementById('wsct-export');
+        if (!link) return;
+        var days = (document.getElementById('wsct-days') || {}).value || '30';
+        var bot = (document.getElementById('wsct-bot') || {}).value || '';
+
+        var base = link.getAttribute('data-base');
+        if (!base) {
+            // mémorise l'URL initiale (action + nonce) une seule fois
+            base = link.getAttribute('href');
+            link.setAttribute('data-base', base);
+        }
+        var sep = base.indexOf('?') === -1 ? '?' : '&';
+        var url = base + sep + 'days=' + encodeURIComponent(days);
+        if (bot) url += '&bot=' + encodeURIComponent(bot);
+        link.setAttribute('href', url);
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         if (!document.getElementById('wsct-kpis')) return; // pas sur le dashboard
 
@@ -285,12 +341,13 @@
 
         ['wsct-days', 'wsct-bot'].forEach(function (id) {
             var el = document.getElementById(id);
-            if (el) el.addEventListener('change', load);
+            if (el) el.addEventListener('change', function () { load(); updateExportLink(); });
         });
 
         var sessSel = document.getElementById('wsct-session');
         if (sessSel) sessSel.addEventListener('change', function () { loadSessionPath(this.value); });
 
+        updateExportLink();
         load();
     });
 }());

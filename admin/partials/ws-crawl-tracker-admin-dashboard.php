@@ -45,6 +45,11 @@ $wsct_bots     = $wsct_settings['bots'] ?? [];
         </select>
       </div>
       <button type="button" id="wsct-refresh" class="ws-btn-inline"><?php esc_html_e( 'Actualiser', 'ws-crawl-tracker' ); ?></button>
+      <a id="wsct-export" class="ws-btn-ghost wsct-export-btn"
+         href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=wsct_export' ), 'wsct_export' ) ); ?>">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="vertical-align:-2px;margin-right:6px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <?php esc_html_e( 'Exporter CSV', 'ws-crawl-tracker' ); ?>
+      </a>
     </section>
 
     <!-- KPIs -->
@@ -182,23 +187,10 @@ $wsct_bots     = $wsct_settings['bots'] ?? [];
         </span>
         <div>
           <h2 class="ws-card-title"><?php esc_html_e( 'Derniers passages', 'ws-crawl-tracker' ); ?></h2>
-          <p class="ws-card-desc"><?php esc_html_e( 'Flux chronologique des 100 derniers hits.', 'ws-crawl-tracker' ); ?></p>
+          <p class="ws-card-desc"><?php esc_html_e( 'Hits regroupés par jour. Cliquez sur une journée pour déplier les URLs.', 'ws-crawl-tracker' ); ?></p>
         </div>
       </div>
-      <div class="wsct-table-wrap">
-        <table class="wsct-table">
-          <thead>
-            <tr>
-              <th><?php esc_html_e( 'Date', 'ws-crawl-tracker' ); ?></th>
-              <th><?php esc_html_e( 'Robot', 'ws-crawl-tracker' ); ?></th>
-              <th><?php esc_html_e( 'URL', 'ws-crawl-tracker' ); ?></th>
-              <th><?php esc_html_e( 'Code', 'ws-crawl-tracker' ); ?></th>
-              <th><?php esc_html_e( 'Vérifié', 'ws-crawl-tracker' ); ?></th>
-            </tr>
-          </thead>
-          <tbody id="wsct-recent"></tbody>
-        </table>
-      </div>
+      <div id="wsct-recent" class="wsct-accordions"></div>
     </section>
 
     <div id="wsct-loading" class="wsct-loading" style="display:none;">
