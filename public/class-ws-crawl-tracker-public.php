@@ -102,14 +102,18 @@ class WS_Crawl_Tracker_Public {
 
     /**
      * Identifiant de session de crawl. On réutilise la dernière session connue
-     * pour ce couple (bot, IP) si le dernier hit date de moins de SESSION_GAP.
+     * pour ce bot si le dernier hit date de moins de SESSION_GAP.
+     *
+     * NB : la session NE dépend PAS de l'IP. Les crawlers (Googlebot en tête)
+     * opèrent depuis un pool d'IP et changent d'adresse d'une requête à l'autre ;
+     * inclure l'IP dans la clé fragmentait chaque passage en sessions de 1 page.
      */
     private function session_id( $bot_key, $ip ) {
-        $key  = 'wsct_sess_' . md5( $bot_key . '|' . $ip );
+        $key  = 'wsct_sess_' . md5( (string) $bot_key );
         $sess = get_transient( $key );
 
         if ( ! $sess ) {
-            $sess = md5( $bot_key . '|' . $ip . '|' . microtime( true ) . '|' . wp_rand() );
+            $sess = md5( $bot_key . '|' . microtime( true ) . '|' . wp_rand() );
         }
 
         // Rafraîchit la fenêtre d'inactivité.
