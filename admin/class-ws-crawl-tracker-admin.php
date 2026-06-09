@@ -331,6 +331,8 @@ class WS_Crawl_Tracker_Admin {
             'verify_dns'     => ! empty( $_POST['wsct_verify_dns'] ) ? 1 : 0,
             'retention_days' => isset( $_POST['wsct_retention_days'] ) ? absint( $_POST['wsct_retention_days'] ) : 90,
             'bots'           => $bots,
+            'excluded_ua'    => $this->parse_lines( $_POST['wsct_excluded_ua'] ?? '' ),
+            'excluded_paths' => $this->parse_lines( $_POST['wsct_excluded_paths'] ?? '' ),
         ];
         if ( $settings['retention_days'] < 1 ) {
             $settings['retention_days'] = 90;
@@ -343,6 +345,28 @@ class WS_Crawl_Tracker_Admin {
             admin_url( 'admin.php' )
         ) );
         $this->terminate();
+    }
+
+    /**
+     * Convertit un textarea (une entrée par ligne) en tableau nettoyé :
+     * trim, suppression des lignes vides, dédoublonnage, sanitation.
+     *
+     * @param string $raw Contenu brut du textarea.
+     * @return array
+     */
+    public function parse_lines( $raw ) {
+        $raw   = (string) wp_unslash( $raw );
+        $lines = preg_split( '/\r\n|\r|\n/', $raw );
+        $out   = [];
+
+        foreach ( $lines as $line ) {
+            $line = trim( sanitize_text_field( $line ) );
+            if ( '' !== $line ) {
+                $out[] = $line;
+            }
+        }
+
+        return array_values( array_unique( $out ) );
     }
 
     /**

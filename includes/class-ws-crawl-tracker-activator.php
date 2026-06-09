@@ -12,15 +12,37 @@ class WS_Crawl_Tracker_Activator {
 
         if ( ! get_option( 'wsct_settings' ) ) {
             update_option( 'wsct_settings', [
-                'enabled'        => 1,
-                'verify_dns'     => 1,
-                'retention_days' => 90,
-                'bots'           => self::default_bots(),
+                'enabled'         => 1,
+                'verify_dns'      => 1,
+                'retention_days'  => 90,
+                'bots'            => self::default_bots(),
+                'excluded_ua'     => self::default_excluded_ua(),
+                'excluded_paths'  => self::default_excluded_paths(),
             ] );
         }
 
         // Marqueur de version de schéma pour migrations futures.
         update_option( 'wsct_db_version', '1.0.0' );
+    }
+
+    /**
+     * User-agents exclus du tracking par défaut (matching « contient »).
+     * Évite que les outils internes WebStrategy polluent les statistiques.
+     */
+    public static function default_excluded_ua() {
+        return [
+            'WS-Claude-Bridge',
+            'WS-GEO-Audit',
+        ];
+    }
+
+    /**
+     * Chemins exclus du tracking par défaut (matching « commence par »).
+     */
+    public static function default_excluded_paths() {
+        return [
+            '/wp-json/ws-bridge/v1/',
+        ];
     }
 
     /**

@@ -35,6 +35,9 @@ if ( ! function_exists( 'esc_html' ) ) {
 if ( ! function_exists( 'esc_attr' ) ) {
     function esc_attr( $t ) { return htmlspecialchars( (string) $t, ENT_QUOTES, 'UTF-8' ); }
 }
+if ( ! function_exists( 'esc_textarea' ) ) {
+    function esc_textarea( $t ) { return htmlspecialchars( (string) $t, ENT_QUOTES, 'UTF-8' ); }
+}
 if ( ! function_exists( 'esc_html__' ) ) {
     function esc_html__( $t, $d = 'default' ) { return esc_html( $t ); }
 }

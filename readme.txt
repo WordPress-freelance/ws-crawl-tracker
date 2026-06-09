@@ -4,7 +4,7 @@ Tags: seo, googlebot, crawl, bot, log, geo, search engine, ai bots
 Requires at least: 5.6
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.1.1
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -69,6 +69,9 @@ La table de données et toutes les options sont supprimées proprement.
 
 == Changelog ==
 
+= 1.2.0 =
+* Nouveau : exclusions configurables dans les Réglages. Définissez des user-agents (correspondance « contient ») et des chemins d'URL (correspondance « commence par ») à ne jamais enregistrer — utile pour vos propres outils, robots de monitoring ou endpoints d'API internes.
+
 = 1.1.1 =
 * Correction : les sessions de crawl ne sont plus fragmentées. La session ne dépend plus de l'IP du robot — Googlebot opérant depuis un pool d'IP variables, chaque page était auparavant isolée dans sa propre session. Le chemin de crawl reconstruit désormais correctement le parcours multi-pages.
 
@@ -80,6 +83,9 @@ La table de données et toutes les options sont supprimées proprement.
 * Version initiale : tracking multi-robots, dashboard complet, vérification reverse DNS, recommandations, purge automatique.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Exclusions configurables (user-agents et chemins) dans les Réglages.
 
 = 1.1.1 =
 Corrige la fragmentation des sessions de crawl (chemin multi-pages désormais correct).

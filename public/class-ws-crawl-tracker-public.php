@@ -44,6 +44,12 @@ class WS_Crawl_Tracker_Public {
             return;
         }
 
+        // Exclusions (outils internes, endpoints REST du bridge, etc.).
+        $uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+        if ( $this->is_excluded( $ua, $uri ) ) {
+            return;
+        }
+
         $bots     = $this->settings['bots'] ?? [];
         $detector = new WS_Crawl_Tracker_Detector( $bots, ! empty( $this->settings['verify_dns'] ) );
 
@@ -120,6 +126,44 @@ class WS_Crawl_Tracker_Public {
         set_transient( $key, $sess, self::SESSION_GAP );
 
         return $sess;
+    }
+
+    /**
+     * Détermine si une requête doit être ignorée (outils internes, REST du bridge…).
+     * UA : matching « contient » (insensible à la casse). Chemin : « commence par ».
+     *
+     * @param string $ua  User-agent.
+     * @param string $uri REQUEST_URI (chemin + query).
+     * @return bool
+     */
+    public function is_excluded( $ua, $uri ) {
+        $ua  = (string) $ua;
+        $uri = (string) $uri;
+
+        $ua_list = $this->settings['excluded_ua'] ?? [];
+        foreach ( (array) $ua_list as $needle ) {
+            $needle = trim( (string) $needle );
+            if ( '' !== $needle && false !== stripos( $ua, $needle ) ) {
+                return true;
+            }
+        }
+
+        // Compare sur le chemin seul (sans la query string).
+        $path = $uri;
+        $qpos = strpos( $path, '?' );
+        if ( false !== $qpos ) {
+            $path = substr( $path, 0, $qpos );
+        }
+
+        $path_list = $this->settings['excluded_paths'] ?? [];
+        foreach ( (array) $path_list as $prefix ) {
+            $prefix = trim( (string) $prefix );
+            if ( '' !== $prefix && 0 === strpos( $path, $prefix ) ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

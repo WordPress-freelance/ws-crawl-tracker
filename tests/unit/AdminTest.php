@@ -219,4 +219,37 @@ class AdminTest extends WebStrategyTestCase {
         $this->expectException( \RuntimeException::class );
         $admin->handle_export_csv();
     }
+
+    public function test_parse_lines_trims_dedupes_drops_blanks() {
+        $admin = $this->admin();
+
+        $raw = "WS-Claude-Bridge\n  WS-GEO-Audit  \n\nWS-Claude-Bridge\n   \n";
+        $out = $admin->parse_lines( $raw );
+
+        $this->assertSame( [ 'WS-Claude-Bridge', 'WS-GEO-Audit' ], $out );
+    }
+
+    public function test_save_settings_persists_exclusions() {
+        $admin = $this->admin();
+
+        WP_Mock::userFunction( 'current_user_can', [ 'return' => true ] );
+        WP_Mock::userFunction( 'check_admin_referer', [ 'return' => true ] );
+        WP_Mock::userFunction( 'get_option', [ 'return' => [ 'bots' => \WS_Crawl_Tracker_Activator::default_bots() ] ] );
+        WP_Mock::userFunction( 'admin_url', [ 'return' => 'https://x.fr/wp-admin/admin.php' ] );
+        WP_Mock::userFunction( 'add_query_arg', [ 'return' => 'https://x.fr/' ] );
+        WP_Mock::userFunction( 'wp_safe_redirect', [ 'return' => true ] );
+
+        $saved = null;
+        WP_Mock::userFunction( 'update_option', [
+            'return' => function ( $name, $value ) use ( &$saved ) { $saved = $value; return true; },
+        ] );
+
+        $_POST['wsct_excluded_ua']    = "WS-Claude-Bridge\nWS-GEO-Audit";
+        $_POST['wsct_excluded_paths'] = "/wp-json/ws-bridge/v1/";
+
+        try { $admin->handle_save_settings(); } catch ( \Exception $e ) {}
+
+        $this->assertSame( [ 'WS-Claude-Bridge', 'WS-GEO-Audit' ], $saved['excluded_ua'] );
+        $this->assertSame( [ '/wp-json/ws-bridge/v1/' ], $saved['excluded_paths'] );
+    }
 }

@@ -8,6 +8,8 @@ $wsct_enabled   = ! empty( $wsct_settings['enabled'] );
 $wsct_dns       = ! empty( $wsct_settings['verify_dns'] );
 $wsct_retention = isset( $wsct_settings['retention_days'] ) ? absint( $wsct_settings['retention_days'] ) : 90;
 $wsct_bots      = $wsct_settings['bots'] ?? WS_Crawl_Tracker_Activator::default_bots();
+$wsct_excl_ua   = $wsct_settings['excluded_ua'] ?? WS_Crawl_Tracker_Activator::default_excluded_ua();
+$wsct_excl_path = $wsct_settings['excluded_paths'] ?? WS_Crawl_Tracker_Activator::default_excluded_paths();
 ?>
 <div class="wrap ws-admin-wrap">
   <?php include __DIR__ . '/ws-crawl-tracker-admin-header.php'; ?>
@@ -104,6 +106,30 @@ $wsct_bots      = $wsct_settings['bots'] ?? WS_Crawl_Tracker_Activator::default_
             <span><?php echo esc_html( $wsct_b['name'] ); ?></span>
           </label>
           <?php endforeach; ?>
+        </div>
+      </section>
+
+      <section class="ws-card">
+        <div class="ws-card-head">
+          <span class="ws-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/></svg>
+          </span>
+          <div>
+            <h2 class="ws-card-title"><?php esc_html_e( 'Exclusions', 'ws-crawl-tracker' ); ?></h2>
+            <p class="ws-card-desc"><?php esc_html_e( 'Trafic à ne jamais enregistrer (outils internes, monitoring, endpoints d\'API). Une entrée par ligne.', 'ws-crawl-tracker' ); ?></p>
+          </div>
+        </div>
+
+        <div class="wsct-field">
+          <label class="wsct-field-label" for="wsct_excluded_ua"><?php esc_html_e( 'User-agents exclus', 'ws-crawl-tracker' ); ?></label>
+          <p class="wsct-field-hint"><?php esc_html_e( 'Correspondance « contient », insensible à la casse. Ex. : un crawler maison ou un service de monitoring.', 'ws-crawl-tracker' ); ?></p>
+          <textarea id="wsct_excluded_ua" name="wsct_excluded_ua" class="ws-input wsct-textarea" rows="4" spellcheck="false"><?php echo esc_textarea( implode( "\n", (array) $wsct_excl_ua ) ); ?></textarea>
+        </div>
+
+        <div class="wsct-field">
+          <label class="wsct-field-label" for="wsct_excluded_paths"><?php esc_html_e( 'Chemins exclus', 'ws-crawl-tracker' ); ?></label>
+          <p class="wsct-field-hint"><?php esc_html_e( 'Correspondance « commence par », sur le chemin de l\'URL (sans le domaine). Ex. : /wp-json/mon-api/.', 'ws-crawl-tracker' ); ?></p>
+          <textarea id="wsct_excluded_paths" name="wsct_excluded_paths" class="ws-input wsct-textarea" rows="3" spellcheck="false"><?php echo esc_textarea( implode( "\n", (array) $wsct_excl_path ) ); ?></textarea>
         </div>
       </section>
 

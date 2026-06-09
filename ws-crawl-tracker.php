@@ -3,7 +3,7 @@
  * Plugin Name:       WS Crawl Tracker
  * Plugin URI:        https://wordpress-freelance.com/plugins/ws-crawl-tracker/
  * Description:       Tracez le passage de Googlebot et des autres robots SEO/IA sur votre site. Timeline du crawl, graphe de navigation, heatmap des pages et statistiques détaillées dans une table dédiée.
- * Version:           1.1.1
+ * Version:           1.2.0
  * Author:            WebStrategy
  * Author URI:        https://wordpress-freelance.com
  * License:           GPL-2.0-or-later
@@ -16,7 +16,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WS_CRAWL_TRACKER_VERSION', '1.1.1' );
+define( 'WS_CRAWL_TRACKER_VERSION', '1.2.0' );
 define( 'WS_CRAWL_TRACKER_SLUG',    'ws-crawl-tracker' );
 define( 'WS_CRAWL_TRACKER_FILE',    __FILE__ );
 define( 'WS_CRAWL_TRACKER_PATH',    plugin_dir_path( __FILE__ ) );
